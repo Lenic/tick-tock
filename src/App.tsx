@@ -1,22 +1,25 @@
-import { useMemo } from "react";
-import "./styles.css";
-import fibRange from "fibonacci-range";
-import RT from "@yaireo/relative-time";
-const relativeTime = new RT();
+import type { FC } from 'react';
+
+import { useMemo } from 'react';
+import RT from '@yaireo/relative-time';
+import fibRange from 'fibonacci-range';
+
+import './styles.css';
 
 const now = Date.now();
 const fib = fibRange(20);
+const relativeTime = new RT();
 
-const RelativeTime = ({ time }: { time: number }) => {
-  return relativeTime.from(time);
+const RelativeTime: FC<{ time: number }> = ({ time }) => {
+  return <>{relativeTime.from(new Date(time))}</>;
 };
 
 const useRecentArticles = () =>
   useMemo(
     () =>
       new Array(10).fill(0).map((_, i) => ({
-        title: "Article " + i,
-        createdAt: now - 1000 * fib[i]
+        title: 'Article ' + i,
+        createdAt: now - 1000 * fib[i],
       })),
     []
   );
@@ -41,8 +44,8 @@ const useRecentComments = () =>
   useMemo(
     () =>
       new Array(20).fill(0).map((_, i) => ({
-        title: "Comment " + i,
-        createdAt: now - 1000 * fib[i]
+        title: 'Comment ' + i,
+        createdAt: now - 1000 * fib[i],
       })),
     []
   );
