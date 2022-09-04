@@ -1,18 +1,26 @@
 import type { FC } from 'react';
 
-import { useMemo } from 'react';
 import RT from '@yaireo/relative-time';
 import fibRange from 'fibonacci-range';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import './styles.css';
+import { resigter } from './utils';
 
 const now = Date.now();
 const fib = fibRange(20);
 const relativeTime = new RT();
 
-const RelativeTime: FC<{ time: number }> = ({ time }) => {
-  return <>{relativeTime.from(new Date(time))}</>;
+const RelativeTimeLogic: FC<{ time: number }> = ({ time }) => {
+  const getValue = useCallback(() => relativeTime.from(new Date(time)), [time]);
+
+  const [value, setValue] = useState(getValue);
+
+  useEffect(() => resigter(time, () => setValue(getValue())), [getValue, time]);
+
+  return <>{value}</>;
 };
+const RelativeTime = memo(RelativeTimeLogic);
 
 const useRecentArticles = () =>
   useMemo(
