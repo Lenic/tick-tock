@@ -1,32 +1,32 @@
 import type { RelativeTimeTask, TaskInfo } from './types';
 
-const list: RelativeTimeTask[] = [];
+import { PriorityQueue } from './heap';
+
 const config: TaskInfo = { taskId: null, macroId: null };
+const pq = new PriorityQueue<RelativeTimeTask>((x, y) => x.next - y.next);
 
 const refreshComponent = () => {
   config.taskId = null;
   config.macroId = null;
-  if (!list.length) return;
+  if (pq.isEmpty()) return;
 
   let isChanged = false;
-  const now = Date.now();
-  for (let index = 0; index < list.length; index++) {
-    const value = list.shift()!;
-    list.push(value);
 
+  const value = pq.peek();
+  if (value) {
+    const now = Date.now();
     if (value.next <= now) {
       isChanged = true;
-
       value.next = value.action(now);
 
-      break;
+      pq.heap.down(0);
     }
   }
 
   if (isChanged) {
     config.taskId = requestIdleCallback(refreshComponent);
   } else {
-    const minTime = list.reduce((acc, x) => Math.min(acc, x.next), Infinity);
+    const minTime = pq.list.reduce((acc, x) => Math.min(acc, x.next), Infinity);
     config.macroId = setTimeout(refreshComponent, minTime - Date.now());
   }
 };
@@ -53,7 +53,7 @@ export const resigter = (time: number, updateAction: () => void) => {
       return getNextTime(time, now);
     },
   };
-  list.push(task);
+  pq.offer(task);
 
   // start
   if (config.macroId !== null) {
@@ -64,9 +64,9 @@ export const resigter = (time: number, updateAction: () => void) => {
   }
 
   return () => {
-    const index = list.findIndex((v) => v === task);
+    const index = pq.list.findIndex((v) => v === task);
     if (index < 0) return;
 
-    list.splice(index, 1);
+    pq.poll(index);
   };
 };
