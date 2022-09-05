@@ -1,8 +1,10 @@
 import type { RelativeTimeTask, TaskInfo } from './types';
 
+import { unstable_batchedUpdates } from 'react-dom';
+
 import { PriorityQueue } from './heap';
 
-const config: TaskInfo = { taskId: null, macroId: null };
+const config: TaskInfo = { taskId: null, macroId: null, batchCount: 10 };
 const pq = new PriorityQueue<RelativeTimeTask>((x, y) => x.next - y.next);
 
 const refreshComponent = () => {
@@ -12,16 +14,21 @@ const refreshComponent = () => {
 
   let isChanged = false;
 
-  const value = pq.peek();
-  if (value) {
-    const now = Date.now();
-    if (value.next <= now) {
-      isChanged = true;
-      value.next = value.action(now);
+  const min = Math.min(config.batchCount, pq.size());
+  unstable_batchedUpdates(() => {
+    for (let i = 0; i < min; i++) {
+      const value = pq.peek();
+      if (value) {
+        const now = Date.now();
+        if (value.next > now) break;
 
-      pq.heap.down(0);
+        isChanged = true;
+        value.next = value.action(now);
+
+        pq.heap.down(0);
+      }
     }
-  }
+  });
 
   if (isChanged) {
     config.taskId = requestIdleCallback(refreshComponent);

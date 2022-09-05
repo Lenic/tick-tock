@@ -1,5 +1,6 @@
 export interface TaskInfo {
   taskId: number | null;
+  batchCount: number;
   macroId: ReturnType<typeof setTimeout> | null;
 }
 
