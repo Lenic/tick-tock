@@ -33,8 +33,7 @@ const refreshComponent = () => {
   if (isChanged) {
     config.taskId = requestIdleCallback(refreshComponent);
   } else {
-    const minTime = pq.list.reduce((acc, x) => Math.min(acc, x.next), Infinity);
-    config.macroId = setTimeout(refreshComponent, minTime - Date.now());
+    config.macroId = setTimeout(refreshComponent, pq.peek()!.next - Date.now());
   }
 };
 
